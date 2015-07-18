@@ -43,7 +43,7 @@ int Base64Decode(char* b64message, unsigned char** buffer, size_t* length)
 	assert(*length == decodeLen);
 	BIO_free_all(bio);
 
-	return (0); //success
+	return (0);
 }
 
 int Base64Encode(const char* str, char** b64text, unsigned int *b64length)
@@ -186,7 +186,7 @@ int main()
 		curl_easy_setopt(curl, CURLOPT_URL, "https://dev-auth.simplexsolutionsinc.com/");
 		curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
 
-	 	curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0);
+	 	curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 1);
 
 		curl_easy_setopt(curl, CURLOPT_POSTFIELDS, data.c_str());
 		curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, data.length());
