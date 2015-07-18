@@ -3,6 +3,8 @@ project(KeepSolidTest)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 
+find_package(OpenSSL REQUIRED)
+
 include(FindProtobuf)
 find_package(Protobuf REQUIRED)
 include_directories(${PROTOBUF_INCLUDE_DIR})
@@ -22,4 +24,6 @@ add_executable(KeepSolidTest ${KeepSolidTestProtoSources} ${SOURCE_FILES} ${PROT
 
 target_link_libraries(KeepSolidTest
      ${PROTOBUF_LIBRARY}
+     ${OPENSSL_LIBRARIES}
+     curl
 )
