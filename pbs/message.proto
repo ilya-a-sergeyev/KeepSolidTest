@@ -1,0 +1,27 @@
+package rpc;
+
+option optimize_for = SPEED;
+
+import  "message_type.proto";
+
+import  "message_workgroup.proto";
+
+message Request {
+    optional MessageType                        message_type                = 1;
+
+    optional WorkGroupsListRequest              workgroups_list             = 64;
+
+    optional int64                              service_type                = 4096;
+    optional bool                               is_debug                    = 4097;
+}
+
+message Response {
+    optional MessageType                        message_type                = 1;
+
+    optional WorkGroupsListResponse             workgroups_list             = 64;
+
+    optional int32                              error_code                  = 2048;
+    repeated string                             error_message               = 2049;
+    optional string                             request_id                  = 2050;
+}
+

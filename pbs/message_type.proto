@@ -1,0 +1,8 @@
+enum MessageType {
+
+    RPC_WORKGROUPS_LIST                     = 64;
+
+    RPC_UNKNOWN                             = 1024;
+}
+
+

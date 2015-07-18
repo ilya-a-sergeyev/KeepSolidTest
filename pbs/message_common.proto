@@ -1,0 +1,36 @@
+package rpc;
+
+option optimize_for = SPEED;
+
+enum Filter
+{
+    EXISTING_ONLY   = 0;
+    DELETED_ONLY    = 1;
+    ALL_ENTRIES     = 2;
+}
+
+message WorkGroupInfo {
+    optional int64      workgroup_id        = 1;
+    optional string     workgroup_name      = 2;
+    optional string     description         = 3;
+    optional string     creator_login       = 4;
+    optional int64      access_mode         = 5;
+    optional bool       invite_accepted     = 8;
+    optional string     key                 = 9;
+    optional string     key_signature       = 10;
+    optional string     key_salt            = 11;
+    optional int32      encryption_algo     = 12;
+    optional int32      encryption_type     = 13;
+    optional int64      size                = 16;
+    optional int64      creation_date       = 17;
+    optional int64      deletion_date       = 18;
+    optional string     creation_date_str   = 19;
+    optional string     deletion_date_str   = 20;
+    optional bool       is_deleted          = 23;
+    optional int64      company_id          = 24;
+    optional int32      workgroup_type      = 25; //for Todo Checklist or metadata parsing
+    optional string     workgroup_metadata  = 26; //for Todo Checklist or metadata parsing
+    
+    optional int64		files_count			= 27;
+}
+
