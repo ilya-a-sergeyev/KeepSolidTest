@@ -82,11 +82,11 @@ string Base64Encode(string &ssrc)
 	buf[b64length]=0;
 
 	// verification
-	char *back = new char[256];
-	Base64Decode(buf, (unsigned char **)&back, &backlength);
-	back[backlength]=0;
-	cout << back << "\n";
-	delete back;
+	//char *back = new char[256];
+	//Base64Decode(buf, (unsigned char **)&back, &backlength);
+	//back[backlength]=0;
+	//cout << back << "\n";
+	//delete back;
 
 	string ret(buf);
 	delete buf;
@@ -136,19 +136,82 @@ string make_post_data(string login="pink007@mailinator.com", string passwd="1234
 	string s_locale = get_locale();
 	string s_timezone = get_timezone();
 
-	string data = "{ \"action\":\"" + Base64Encode(s_action) + "\",";
-	data += "\"service\":\"" + Base64Encode(s_service) + "\",";
-	data += "\"login\":\"" + Base64Encode(s_login) + "\",";
-	data += "\"password\":\""+ Base64Encode(s_password) + "\",";
-	data += "\"deviceid\":\"" +Base64Encode(s_deviceid) + "\",";
-	data += "\"device\":\"" +Base64Encode(s_devicename) + "\",";
-	data += "\"platform\":\""+Base64Encode(s_platform) + "\",";
-	data += "\"platformversion\":\""+Base64Encode(s_platformversion) + "\",";
-	data += "\"appversion\":\""+Base64Encode(s_appversion) + "\",";
-	data += "\"locale\":\""+Base64Encode(s_locale) + "\",";
-	data += "\"timezone\":\""+Base64Encode(s_timezone) + "\"}";
+//  JSON version
+//	string data = "{ \"action\":\"" + Base64Encode(s_action) + "\",";
+//	data += "\"service\":\"" + Base64Encode(s_service) + "\",";
+//	data += "\"login\":\"" + Base64Encode(s_login) + "\",";
+//	data += "\"password\":\""+ Base64Encode(s_password) + "\",";
+//	data += "\"deviceid\":\"" +Base64Encode(s_deviceid) + "\",";
+//	data += "\"device\":\"" +Base64Encode(s_devicename) + "\",";
+//	data += "\"platform\":\""+Base64Encode(s_platform) + "\",";
+//	data += "\"platformversion\":\""+Base64Encode(s_platformversion) + "\",";
+//	data += "\"appversion\":\""+Base64Encode(s_appversion) + "\",";
+//	data += "\"locale\":\""+Base64Encode(s_locale) + "\",";
+//	data += "\"timezone\":\""+Base64Encode(s_timezone) + "\"}";
+
+// simple version
+	string data = "action=" + Base64Encode(s_action) + "&";
+	data += "service=" + Base64Encode(s_service) + "&";
+	data += "login=" + Base64Encode(s_login) + "&";
+	data += "password="+ Base64Encode(s_password) + "&";
+	data += "deviceid=" +Base64Encode(s_deviceid) + "&";
+	data += "device=" +Base64Encode(s_devicename) + "&";
+	data += "platform="+Base64Encode(s_platform) + "&";
+	data += "platformversion="+Base64Encode(s_platformversion) + "&";
+	data += "appversion="+Base64Encode(s_appversion) + "&";
+	data += "locale="+Base64Encode(s_locale) + "&";
+	data += "timezone="+Base64Encode(s_timezone);
 
 	return data;
+}
+
+// params in header version
+int fill_header_post(struct curl_slist *headers, string s_login, string s_passwd)
+{
+	string s_action = "login";
+	string s_service = "com.braininstock.ToDoChecklist";
+	string s_device = "FLY12345";
+	string s_deviceid = "FLY54321";
+	string s_platform = "Android";
+	string s_platformversion = "4.4";
+	string s_appversion = "0.1";
+	string s_locale = get_locale();
+	string s_timezone = get_timezone();
+
+	string data = "action=" + Base64Encode(s_action);
+	headers = curl_slist_append(headers, data.c_str());
+
+	data = "service=" + Base64Encode(s_service);
+	headers = curl_slist_append(headers, data.c_str());
+
+	data = "login=" + Base64Encode(s_login);
+	headers = curl_slist_append(headers, data.c_str());
+
+	data = "password="+ Base64Encode(s_passwd);
+	headers = curl_slist_append(headers, data.c_str());
+
+	data = "deviceid=" +Base64Encode(s_deviceid);
+	headers = curl_slist_append(headers, data.c_str());
+
+	data = "device=" +Base64Encode(s_device);
+	headers = curl_slist_append(headers, data.c_str());
+
+	data = "platform="+Base64Encode(s_platform);
+	headers = curl_slist_append(headers, data.c_str());
+
+	data = "platformversion="+Base64Encode(s_platformversion);
+	headers = curl_slist_append(headers, data.c_str());
+
+	data = "appversion="+Base64Encode(s_appversion);
+	headers = curl_slist_append(headers, data.c_str());
+
+	data = "locale="+Base64Encode(s_locale);
+	headers = curl_slist_append(headers, data.c_str());
+
+	data = "timezone="+Base64Encode(s_timezone);
+	headers = curl_slist_append(headers, data.c_str());
+
+	return 0;
 }
 
 size_t write_to_string(void *ptr, size_t size, size_t count, void *stream)
@@ -171,16 +234,15 @@ int main()
 	//cout << "Enter password: ";
 	//cin >> userpasswd;
 
-	std::string data = make_post_data(username, userpasswd);
-
+	string data = make_post_data(username, userpasswd);
 	cout <<  data << "\n";
 
+
 	struct curl_slist *headers=NULL;
-	headers = curl_slist_append(headers, "Accept: application/json");
-	headers = curl_slist_append(headers, "Content-Type: application/json");
-	headers = curl_slist_append(headers, "charsets: utf-8");
+	//fill_header_post(headers, username, userpasswd);
 
 	curl = curl_easy_init();
+
 	if(curl) {
 		curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
 		curl_easy_setopt(curl, CURLOPT_URL, "https://dev-auth.simplexsolutionsinc.com/");
@@ -190,6 +252,7 @@ int main()
 
 		curl_easy_setopt(curl, CURLOPT_POSTFIELDS, data.c_str());
 		curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, data.length());
+
 		curl_easy_setopt(curl, CURLOPT_POST, 1);
 
 		curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_to_string);
@@ -205,6 +268,9 @@ int main()
 				std::cout << response << "\n";
 			}
 		}
+
+		curl_easy_cleanup(curl);
+		curl_slist_free_all(headers);
 	}
 
 	return 0;
