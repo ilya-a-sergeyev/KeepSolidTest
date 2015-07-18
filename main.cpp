@@ -75,7 +75,6 @@ int Base64Encode(const char* str, char** b64text, unsigned int *b64length)
 string Base64Encode(string &ssrc)
 {
 	char *buf = new char[256];
-	char *back = new char[256];
 	unsigned int b64length=0;
 	size_t backlength=0;
 	memset(buf, 0, 256);
@@ -83,13 +82,14 @@ string Base64Encode(string &ssrc)
 	buf[b64length]=0;
 
 	// verification
+	char *back = new char[256];
 	Base64Decode(buf, (unsigned char **)&back, &backlength);
 	back[backlength]=0;
-	cout << buf << " --- " << back << "\n";
+	cout << back << "\n";
+	delete back;
 
 	string ret(buf);
 	delete buf;
-	delete back;
 	return ret;
 }
 
@@ -115,22 +115,23 @@ string get_timezone()
 	tzset();
 	int min_off = (-timezone/60)%60;
 	int hour_off = -timezone/60/60;
-	sprintf(buf, "%+i%02u\n", hour_off, min_off);
+	sprintf(buf, "%+03i%02u", hour_off, min_off);
 
 	string rez(buf);
 	return rez;
 }
 
-string make_post_data(string login="pink007@mailinator.com", string passwd="q")
-{
 
+string make_post_data(string login="pink007@mailinator.com", string passwd="123456")
+{
 	string s_action = "login";
 	string s_service = "com.braininstock.ToDoChecklist";
 	string s_login =  login;
 	string s_password = passwd;
+	string s_devicename = "FLY12345";
 	string s_deviceid = "FLY54321";
 	string s_platform = "Android";
-	string s_platformversion = "4.4.1";
+	string s_platformversion = "4.4";
 	string s_appversion = "0.1";
 	string s_locale = get_locale();
 	string s_timezone = get_timezone();
@@ -140,7 +141,9 @@ string make_post_data(string login="pink007@mailinator.com", string passwd="q")
 	data += "\"login\":\"" + Base64Encode(s_login) + "\",";
 	data += "\"password\":\""+ Base64Encode(s_password) + "\",";
 	data += "\"deviceid\":\"" +Base64Encode(s_deviceid) + "\",";
+	data += "\"device\":\"" +Base64Encode(s_devicename) + "\",";
 	data += "\"platform\":\""+Base64Encode(s_platform) + "\",";
+	data += "\"platformversion\":\""+Base64Encode(s_platformversion) + "\",";
 	data += "\"appversion\":\""+Base64Encode(s_appversion) + "\",";
 	data += "\"locale\":\""+Base64Encode(s_locale) + "\",";
 	data += "\"timezone\":\""+Base64Encode(s_timezone) + "\"}";
@@ -163,13 +166,14 @@ int main()
 	string username = "pink007@mailinator.com";
 	string userpasswd = "123456";
 
-	cout << "Enter username: ";
-	cin >> username;
-	cout << "Enter password: ";
-	cin >> userpasswd;
+	//cout << "Enter username: ";
+	//cin >> username;
+	//cout << "Enter password: ";
+	//cin >> userpasswd;
 
-	//std::string data = make_post_data(username, userpasswd);
-	//cout <<  data << "\n";
+	std::string data = make_post_data(username, userpasswd);
+
+	cout <<  data << "\n";
 
 	struct curl_slist *headers=NULL;
 	headers = curl_slist_append(headers, "Accept: application/json");
@@ -182,7 +186,7 @@ int main()
 		curl_easy_setopt(curl, CURLOPT_URL, "https://dev-auth.simplexsolutionsinc.com/");
 		curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
 
-		std::string data = make_post_data(username, userpasswd);
+	 	curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0);
 
 		curl_easy_setopt(curl, CURLOPT_POSTFIELDS, data.c_str());
 		curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, data.length());
