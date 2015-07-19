@@ -4,12 +4,19 @@
 #include <string>
 #include <cstring>
 
-#include <curl/curl.h>
-
 #include <openssl/bio.h>
 #include <openssl/evp.h>
 #include <openssl/buffer.h>
 #include <assert.h>
+
+#include <jsoncpp/json/json.h>
+
+#include <curl/curl.h>
+#include <openssl/ssl.h>
+
+//#include "message.pb.h"
+#include "../../../.clion10/system/cmake/generated/bc4a843f/bc4a843f/Debug/message.pb.h"
+#include "request.h"
 
 using namespace std;
 
@@ -165,55 +172,6 @@ string make_post_data(string login="pink007@mailinator.com", string passwd="1234
 	return data;
 }
 
-// params in header version
-int fill_header_post(struct curl_slist *headers, string s_login, string s_passwd)
-{
-	string s_action = "login";
-	string s_service = "com.braininstock.ToDoChecklist";
-	string s_device = "FLY12345";
-	string s_deviceid = "FLY54321";
-	string s_platform = "Android";
-	string s_platformversion = "4.4";
-	string s_appversion = "0.1";
-	string s_locale = get_locale();
-	string s_timezone = get_timezone();
-
-	string data = "action=" + Base64Encode(s_action);
-	headers = curl_slist_append(headers, data.c_str());
-
-	data = "service=" + Base64Encode(s_service);
-	headers = curl_slist_append(headers, data.c_str());
-
-	data = "login=" + Base64Encode(s_login);
-	headers = curl_slist_append(headers, data.c_str());
-
-	data = "password="+ Base64Encode(s_passwd);
-	headers = curl_slist_append(headers, data.c_str());
-
-	data = "deviceid=" +Base64Encode(s_deviceid);
-	headers = curl_slist_append(headers, data.c_str());
-
-	data = "device=" +Base64Encode(s_device);
-	headers = curl_slist_append(headers, data.c_str());
-
-	data = "platform="+Base64Encode(s_platform);
-	headers = curl_slist_append(headers, data.c_str());
-
-	data = "platformversion="+Base64Encode(s_platformversion);
-	headers = curl_slist_append(headers, data.c_str());
-
-	data = "appversion="+Base64Encode(s_appversion);
-	headers = curl_slist_append(headers, data.c_str());
-
-	data = "locale="+Base64Encode(s_locale);
-	headers = curl_slist_append(headers, data.c_str());
-
-	data = "timezone="+Base64Encode(s_timezone);
-	headers = curl_slist_append(headers, data.c_str());
-
-	return 0;
-}
-
 size_t write_to_string(void *ptr, size_t size, size_t count, void *stream)
 {
 	((string*)stream)->append((char*)ptr, 0, size*count);
@@ -235,11 +193,8 @@ int main()
 	//cin >> userpasswd;
 
 	string data = make_post_data(username, userpasswd);
-	cout <<  data << "\n";
-
 
 	struct curl_slist *headers=NULL;
-	//fill_header_post(headers, username, userpasswd);
 
 	curl = curl_easy_init();
 
@@ -265,7 +220,19 @@ int main()
 			res = curl_easy_getinfo(curl, CURLINFO_CONTENT_TYPE, &ct);
 			if((CURLE_OK == res) && ct) {
 				printf("We received Content-Type: %s\n", ct);
-				std::cout << response << "\n";
+				//std::cout << response << "\n";
+				Json::Value	parsedFromString;
+				Json::Reader	reader;
+				Json::StyledWriter styledWriter;
+				bool parsingSuccessful = reader.parse(response, parsedFromString);
+				if (parsingSuccessful)
+				{
+					string session_id = parsedFromString["session"].asString();
+					cout << "Got session ID: " << session_id  << "\n";
+					// ToDo check session_id value
+					send_workgroups_list_request(session_id.c_str());
+				}
+
 			}
 		}
 

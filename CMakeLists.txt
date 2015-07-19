@@ -20,10 +20,11 @@ set(SOURCE_FILES main.cpp)
 
 PROTOBUF_GENERATE_CPP(PROTO_SRCS PROTO_HDRS ${KeepSolidTestProtoSources})
 
-add_executable(KeepSolidTest ${KeepSolidTestProtoSources} ${SOURCE_FILES} ${PROTO_SRCS} ${PROTO_HDRS})
+add_executable(KeepSolidTest ${KeepSolidTestProtoSources} ${SOURCE_FILES} ${PROTO_SRCS} ${PROTO_HDRS} request.h request.cpp)
 
 target_link_libraries(KeepSolidTest
      ${PROTOBUF_LIBRARY}
      ${OPENSSL_LIBRARIES}
      curl
+     jsoncpp
 )
