@@ -97,6 +97,11 @@ struct request_hdr {
 	uint32_t	flags;
 };
 
+void show_tasklist(rpc::Response &response)
+{
+	response.PrintDebugString();
+}
+
 int send_workgroups_list_request(const char *session_id)
 {
 	SSL_CTX *ctx;
@@ -161,18 +166,17 @@ int send_workgroups_list_request(const char *session_id)
 				// ToDo - тут хорошо бы предусмотреть контроль корректности значений
 				if (rep_hdr->size>0) {
 					unsigned char *reply_buf= new unsigned char[rep_hdr->size];
-					if (reply_buf != NULL) {
-						bytes = SSL_read(ssl, reply_buf, rep_hdr->size);
-						cout << "Got " << bytes << " bytes\n";
+					bytes = SSL_read(ssl, reply_buf, rep_hdr->size);
+					cout << "Got " << bytes << " bytes\n";
 
+					if (bytes == rep_hdr->size) {
 						rpc::Response response;
 						response.ParseFromArray(reply_buf, rep_hdr->size);
-						response.PrintDebugString();
-
-						delete reply_buf;
+						if (response.error_code() == 200)
+							show_tasklist(response);
 					}
-					else
-						cout << "No mem\n";
+
+					delete reply_buf;
 				}
 			}
 

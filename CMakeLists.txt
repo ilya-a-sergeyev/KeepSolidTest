@@ -16,11 +16,11 @@ set (KeepSolidTestProtoSources
     pbs/message_workgroup.proto
 )
 
-set(SOURCE_FILES main.cpp)
+set(SOURCE_FILES main.cpp request.cpp)
 
 PROTOBUF_GENERATE_CPP(PROTO_SRCS PROTO_HDRS ${KeepSolidTestProtoSources})
 
-add_executable(KeepSolidTest ${KeepSolidTestProtoSources} ${SOURCE_FILES} ${PROTO_SRCS} ${PROTO_HDRS} request.h request.cpp to_do_checklist.h to_do_checklist.cpp todo_ssl_transport.h todo_ssl_transport.cpp todo_post_auth.h todo_post_auth.cpp)
+add_executable(KeepSolidTest ${KeepSolidTestProtoSources} ${SOURCE_FILES} ${PROTO_SRCS} ${PROTO_HDRS})
 
 target_link_libraries(KeepSolidTest
      ${PROTOBUF_LIBRARY}
