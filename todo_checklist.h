@@ -5,7 +5,8 @@
 #ifndef KEEPSOLIDTEST_TO_DO_CHECKLIST_H
 #define KEEPSOLIDTEST_TO_DO_CHECKLIST_H
 
-#include <string>
+//#include "message.pb.h"
+#include "../../../.clion10/system/cmake/generated/bc4a843f/bc4a843f/Debug/message.pb.h"
 
 class ToDoAuthentificator {
 public:
@@ -14,16 +15,18 @@ public:
 
 class ToDoTransport {
 public:
-	virtual int GetBuffer(void **buf)=0;
+	virtual rpc::Response & GetResponse()=0;
 };
 
 class ToDoCheckList {
 protected:
-	ToDoAuthentificator * authentificator;
-	ToDoTransport * transport;
+	ToDoAuthentificator * todoauth;
+	ToDoTransport * todotransp;
+	void DoShowTaskList(rpc::Response &response);
 public:
 	ToDoCheckList();
 	~ToDoCheckList();
+	void ShowCheckList();
 };
 
 #endif //KEEPSOLIDTEST_TO_DO_CHECKLIST_H

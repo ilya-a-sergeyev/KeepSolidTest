@@ -16,7 +16,7 @@ set (KeepSolidTestProtoSources
     pbs/message_workgroup.proto
 )
 
-set(SOURCE_FILES main.cpp request.cpp)
+set(SOURCE_FILES main.cpp todo_post_auth.cpp todo_ssl_transport.cpp todo_checklist.cpp)
 
 PROTOBUF_GENERATE_CPP(PROTO_SRCS PROTO_HDRS ${KeepSolidTestProtoSources})
 
