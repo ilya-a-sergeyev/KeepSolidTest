@@ -219,7 +219,7 @@ int main()
 			char *ct;
 			res = curl_easy_getinfo(curl, CURLINFO_CONTENT_TYPE, &ct);
 			if((CURLE_OK == res) && ct) {
-				printf("We received Content-Type: %s\n", ct);
+				//printf("We received Content-Type: %s\n", ct);
 				//std::cout << response << "\n";
 				Json::Value	parsedFromString;
 				Json::Reader	reader;

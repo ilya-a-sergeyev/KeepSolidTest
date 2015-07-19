@@ -20,7 +20,7 @@
 #include <netdb.h>
 #include <unistd.h>
 
-//#include "message.pb.h"
+#include <jsoncpp/json/json.h>
 
 #include "request.h"
 #include "../../../.clion10/system/cmake/generated/bc4a843f/bc4a843f/Debug/message.pb.h"
@@ -99,7 +99,73 @@ struct request_hdr {
 
 void show_tasklist(rpc::Response &response)
 {
-	response.PrintDebugString();
+	//response.PrintDebugString();
+
+	rpc::WorkGroupsListResponse workGroupsListResponse = response.workgroups_list();
+	int size = workGroupsListResponse.workgroup_info_list_size();
+	int i, j, k;
+
+	for (i=0; i<size; i++) {
+		if (workGroupsListResponse.workgroup_info_list(i).workgroup_type()==1002) {
+			string workgroup_name = workGroupsListResponse.workgroup_info_list(i).workgroup_name();
+			bool workgroup_deleted = workGroupsListResponse.workgroup_info_list(i).is_deleted();
+
+			Json::Value parsedTaskList;
+			Json::Reader readerTaskList;
+
+			bool parsingSuccessful =
+				readerTaskList.parse(workGroupsListResponse.workgroup_info_list(i).workgroup_metadata(),
+					     parsedTaskList);
+
+			if (parsingSuccessful) {
+				string tasklistTtitle = parsedTaskList["title"].asString();
+
+				cout << "Tasklist: " << tasklistTtitle;
+				if (workgroup_deleted)
+					cout << " (deleted)";
+				cout << "\n";
+
+				Json::Value tasks = parsedTaskList["tasks"];
+				for (j=0; j<tasks.size(); j++) {
+					Json::Value task_alias = tasks[j];
+
+					for (k=0; k<size; k++) {
+						if (workGroupsListResponse.workgroup_info_list(k).workgroup_type()==1001) {
+							bool task_deleted = workGroupsListResponse.workgroup_info_list(k).is_deleted();
+
+							Json::Value parsedTask;
+							Json::Reader reader;
+
+							bool parsingSuccessful =
+								reader.parse(workGroupsListResponse.workgroup_info_list(
+										     k).workgroup_metadata(),
+									     parsedTask);
+
+							if (parsingSuccessful) {
+
+								if (parsedTask["alias"].asString() == task_alias.asString()) {
+									string taskTitle = parsedTask["title"].asString();
+
+									cout << "\t\tTask: " << taskTitle;
+									if (task_deleted)
+										cout << " (deleted)";
+									cout << "\n";
+
+								}
+							}
+							else
+								cout << "\t\tTask: " << task_alias.asString() << "\n";
+						}
+					}
+
+				}
+
+			}
+
+		/*
+		*/
+		}
+	}
 }
 
 int send_workgroups_list_request(const char *session_id)
@@ -140,7 +206,7 @@ int send_workgroups_list_request(const char *session_id)
 		cout << "Connection error " << SSL_get_error(ssl, ret) << "\n";
 	}
 	else {
-		cout << "Connected with " << SSL_get_cipher(ssl) << " encryption\n";
+		//cout << "Connected with " << SSL_get_cipher(ssl) << " encryption\n";
 
 		uint64_t seq = 0;
 		request_hdr rq_hdr;
@@ -151,23 +217,23 @@ int send_workgroups_list_request(const char *session_id)
 		SSL_write(ssl, &rq_hdr, sizeof(rq_hdr));
 		SSL_write(ssl, msg.c_str(), msg.length());
 
-		cout << "Sent request (" << sizeof(seq)+sizeof(rq_hdr)+msg.length() << " bytes)\n";
+		//cout << "Sent request (" << sizeof(seq)+sizeof(rq_hdr)+msg.length() << " bytes)\n";
 
 		unsigned char hdr_buf[8];
 		int bytes = SSL_read(ssl, &hdr_buf, sizeof(hdr_buf));
 
 		if (bytes == 8) {
 			uint64_t *pseq = (uint64_t *)&hdr_buf;
-			cout << "seq = " << *pseq;
+			//cout << "seq = " << *pseq;
 			bytes = SSL_read(ssl, hdr_buf, sizeof(hdr_buf));
 			if (bytes == 8) {
 				request_hdr *rep_hdr = (request_hdr *)&hdr_buf;
-				cout << " size = " << rep_hdr->size << "\n";
+				//cout << " size = " << rep_hdr->size << "\n";
 				// ToDo - тут хорошо бы предусмотреть контроль корректности значений
 				if (rep_hdr->size>0) {
 					unsigned char *reply_buf= new unsigned char[rep_hdr->size];
 					bytes = SSL_read(ssl, reply_buf, rep_hdr->size);
-					cout << "Got " << bytes << " bytes\n";
+					//cout << "Got " << bytes << " bytes\n";
 
 					if (bytes == rep_hdr->size) {
 						rpc::Response response;
