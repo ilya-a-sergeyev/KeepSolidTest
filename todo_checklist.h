@@ -20,8 +20,9 @@ public:
 
 class ToDoCheckList {
 protected:
-	ToDoAuthentificator * todoauth;
-	ToDoTransport * todotransp;
+	ToDoAuthentificator *todoauth;
+	ToDoTransport *todotransp;
+	std::string session_id;
 	void DoShowTaskList(rpc::Response &response);
 public:
 	ToDoCheckList();

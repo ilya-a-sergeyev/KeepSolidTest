@@ -6,6 +6,7 @@ int main(int ac, char *av[])
 {
 	ToDoCheckList *todocl = new ToDoCheckList();
 
+	// formatted output
 	todocl->ShowCheckList();
 
 	delete todocl;

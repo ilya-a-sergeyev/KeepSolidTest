@@ -40,9 +40,10 @@ ToDoCheckList::ToDoCheckList()
 
 	// ToDo - проверку на то что аутентификация не провалена, вынести попытку аутентификации в отдельный метод
 	todoauth = new PostToDoAuthentificator(username, userpasswd);
-	string session_id = todoauth->GetSessionID();
+	session_id = todoauth->GetSessionID();
 	todotransp = new SslToDoTransport(session_id);
 }
+
 
 ToDoCheckList::~ToDoCheckList()
 {
@@ -55,6 +56,7 @@ ToDoCheckList::~ToDoCheckList()
 //
 void ToDoCheckList::DoShowTaskList(rpc::Response &response)
 {
+	// full output
 	//response.PrintDebugString();
 
 	rpc::WorkGroupsListResponse workGroupsListResponse = response.workgroups_list();
@@ -76,10 +78,8 @@ void ToDoCheckList::DoShowTaskList(rpc::Response &response)
 			if (parsingSuccessful) {
 				string tasklistTtitle = parsedTaskList["title"].asString();
 
-				cout << "Tasklist: " << tasklistTtitle;
-				if (workgroup_deleted)
-					cout << " (deleted)";
-				cout << "\n";
+				if (!workgroup_deleted)
+					cout << "Tasklist: " << tasklistTtitle << "\n";
 
 				Json::Value tasks = parsedTaskList["tasks"];
 				for (j=0; j<tasks.size(); j++) {
@@ -101,12 +101,15 @@ void ToDoCheckList::DoShowTaskList(rpc::Response &response)
 
 								if (parsedTask["alias"].asString() == task_alias.asString()) {
 									string taskTitle = parsedTask["title"].asString();
+									bool task_completed = parsedTask["completed"].asBool();
 
-									cout << "\t\tTask: " << taskTitle;
-									if (task_deleted)
-										cout << " (deleted)";
-									cout << "\n";
 
+									if (!task_deleted) {
+										cout << "\t\tTask: " << taskTitle;
+										if (task_completed)
+											cout << "(completed)";
+										cout << "\n";
+									}
 								}
 							}
 							else
