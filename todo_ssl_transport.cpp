@@ -102,16 +102,54 @@ SslToDoTransport::SslToDoTransport(std::string sess_id)
 	session_id = sess_id;
 	SSL_load_error_strings();
 	SSL_library_init();
+	ctx = InitCTX();
+	Connect();
+}
+
+SslToDoTransport::~SslToDoTransport()
+{
+	Disconnect();
+}
+
+bool SslToDoTransport::Connect()
+{
+	int ret;
+	server = OpenConnection("rpc.v1.keepsolid.com", 443);
+	ssl = SSL_new(ctx);
+	SSL_set_fd(ssl, server);
+	ret = SSL_connect(ssl);
+
+	if (ret != 1) {
+		cout << "Connection error " << SSL_get_error(ssl, ret) << "\n";
+		isConnected = false;
+	}
+	else
+		isConnected = true;
+
+	SequenceN = 0;
+
+	return isConnected;
+}
+
+void SslToDoTransport::Disconnect()
+{
+	if (isConnected) {
+		close(server);
+		SSL_CTX_free(ctx);
+		SSL_free(ssl);
+		isConnected=false;
+	}
 }
 
 rpc::Response & SslToDoTransport::GetResponse()
 {
-	SSL_CTX *ctx;
-	int server;
-	SSL *ssl;
 	int ret;
 
 	response.clear_workgroups_list();
+
+	if (!isConnected)
+		if (!Connect())
+			return response;
 
 	workgroupsListRequest.set_session_id(session_id);
 	workgroupsListRequest.set_filter(rpc::Filter:: ALL_ENTRIES);
@@ -123,46 +161,32 @@ rpc::Response & SslToDoTransport::GetResponse()
 
 	request.SerializeToString(&msg);
 
-	SSL_load_error_strings();
-	SSL_library_init();
+	uint64_t seq = SequenceN;
+	request_hdr rq_hdr;
+	rq_hdr.size = msg.length();
+	rq_hdr.flags = 0;
 
-	ctx = InitCTX();
-	server = OpenConnection("rpc.v1.keepsolid.com", 443);
-	ssl = SSL_new(ctx);
+	SSL_write(ssl, &seq, sizeof(seq));
+	SSL_write(ssl, &rq_hdr, sizeof(rq_hdr));
+	SSL_write(ssl, msg.c_str(), msg.length());
 
-	SSL_set_fd(ssl, server);
+	unsigned char hdr_buf[8];
+	int bytes = SSL_read(ssl, &hdr_buf, sizeof(hdr_buf));
 
-	ret = SSL_connect(ssl);
-	if (ret != 1) {
-		cout << "Connection error " << SSL_get_error(ssl, ret) << "\n";
-	}
-	else {
-		uint64_t seq = 0;
-		request_hdr rq_hdr;
-		rq_hdr.size = msg.length();
-		rq_hdr.flags = 0;
-
-		SSL_write(ssl, &seq, sizeof(seq));
-		SSL_write(ssl, &rq_hdr, sizeof(rq_hdr));
-		SSL_write(ssl, msg.c_str(), msg.length());
-
-		//cout << "Sent request (" << sizeof(seq)+sizeof(rq_hdr)+msg.length() << " bytes)\n";
-
-		unsigned char hdr_buf[8];
-		int bytes = SSL_read(ssl, &hdr_buf, sizeof(hdr_buf));
-
-		if (bytes == 8) {
-			uint64_t *pseq = (uint64_t *)&hdr_buf;
-			//cout << "seq = " << *pseq;
+	if (bytes == 8) {
+		uint64_t *pseq = (uint64_t *)&hdr_buf;
+		if (seq+1 != *pseq) {
+			cout << "Protocol error: bad sequence number (" << seq << "  " << *pseq + ")\n";
+		}
+		else {
+			SequenceN = *pseq+1;
 			bytes = SSL_read(ssl, hdr_buf, sizeof(hdr_buf));
 			if (bytes == 8) {
 				request_hdr *rep_hdr = (request_hdr *)&hdr_buf;
-				//cout << " size = " << rep_hdr->size << "\n";
 				// ToDo - тут хорошо бы предусмотреть контроль корректности значений
 				if (rep_hdr->size>0) {
 					unsigned char *reply_buf= new unsigned char[rep_hdr->size];
 					bytes = SSL_read(ssl, reply_buf, rep_hdr->size);
-					//cout << "Got " << bytes << " bytes\n";
 
 					if (bytes == rep_hdr->size)
 						// We did it!
@@ -172,15 +196,8 @@ rpc::Response & SslToDoTransport::GetResponse()
 				}
 			}
 		}
-		SSL_free(ssl);
 	}
-	close(server);
-	SSL_CTX_free(ctx);
 
 	return response;
 }
 
-SslToDoTransport::~SslToDoTransport()
-{
-
-}

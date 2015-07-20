@@ -5,6 +5,12 @@
 #ifndef KEEPSOLIDTEST_TODO_SSL_TRANSPORT_H
 #define KEEPSOLIDTEST_TODO_SSL_TRANSPORT_H
 
+#include <openssl/ssl.h>
+#include <openssl/bio.h>
+#include <openssl/evp.h>
+#include <openssl/buffer.h>
+#include <openssl/err.h>
+
 #include "todo_checklist.h"
 
 //#include "message.pb.h"
@@ -17,10 +23,18 @@ protected:
 	rpc::Request request;
 	rpc::Response response;
 	std::string msg;
+	uint64_t SequenceN;
+
+	SSL_CTX *ctx;
+	int server;
+	SSL *ssl;
+	bool isConnected;
 public:
 	SslToDoTransport(std::string sess_id);
-	virtual rpc::Response & GetResponse();
 	virtual ~SslToDoTransport();
+	virtual bool Connect();
+	virtual void Disconnect();
+	virtual rpc::Response & GetResponse();
 };
 
 

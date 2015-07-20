@@ -15,6 +15,8 @@ public:
 
 class ToDoTransport {
 public:
+	virtual bool Connect()=0;
+	virtual void Disconnect()=0;
 	virtual rpc::Response & GetResponse()=0;
 };
 
