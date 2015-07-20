@@ -8,6 +8,7 @@ find_package(OpenSSL REQUIRED)
 include(FindProtobuf)
 find_package(Protobuf REQUIRED)
 include_directories(${PROTOBUF_INCLUDE_DIR})
+include_directories(${CMAKE_BINARY_DIR})
 
 set (KeepSolidTestProtoSources
     pbs/message_common.proto

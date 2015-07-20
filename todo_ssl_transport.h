@@ -13,8 +13,7 @@
 
 #include "todo_checklist.h"
 
-//#include "message.pb.h"
-#include "../../../.clion10/system/cmake/generated/bc4a843f/bc4a843f/Debug/message.pb.h"
+#include "message.pb.h"
 
 class SslToDoTransport:public ToDoTransport {
 protected:
