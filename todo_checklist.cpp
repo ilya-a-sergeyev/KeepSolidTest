@@ -33,10 +33,10 @@ ToDoCheckList::ToDoCheckList()
 	string username = "pink007@mailinator.com";
 	string userpasswd = "123456";
 
-	cout << "Enter username: ";
-	cin >> username;
-	cout << "Enter password: ";
-	cin >> userpasswd;
+	//cout << "Enter username: ";
+	//cin >> username;
+	//cout << "Enter password: ";
+	//cin >> userpasswd;
 
 	// ToDo - проверку на то что аутентификация не провалена, вынести попытку аутентификации в отдельный метод
 	todoauth = new PostToDoAuthentificator(username, userpasswd);

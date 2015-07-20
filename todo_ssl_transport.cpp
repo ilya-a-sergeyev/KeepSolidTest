@@ -100,8 +100,6 @@ struct request_hdr {
 SslToDoTransport::SslToDoTransport(std::string sess_id)
 {
 	session_id = sess_id;
-	SSL_load_error_strings();
-	SSL_library_init();
 	ctx = InitCTX();
 	Connect();
 }
@@ -144,6 +142,7 @@ void SslToDoTransport::Disconnect()
 rpc::Response & SslToDoTransport::GetResponse()
 {
 	int ret;
+	std::string msg;
 
 	response.clear_workgroups_list();
 

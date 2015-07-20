@@ -21,7 +21,6 @@ protected:
 	rpc::WorkGroupsListRequest workgroupsListRequest;
 	rpc::Request request;
 	rpc::Response response;
-	std::string msg;
 	uint64_t SequenceN;
 
 	SSL_CTX *ctx;
