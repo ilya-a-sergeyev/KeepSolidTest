@@ -51,9 +51,47 @@ ToDoCheckList::~ToDoCheckList()
 	delete todoauth;
 }
 
-//
-// ToDo - уменьшить количество уровней иерархии
-//
+
+template <typename WG> void processWorkgroup(WG &workGroupIt, std::string &task_alias)
+{
+	if (workGroupIt.workgroup_type()!=1001) {
+		return;
+	}
+
+	Json::Value  parsedTask;
+	Json::Reader reader;
+
+	if (!reader.parse(workGroupIt.workgroup_metadata(), parsedTask)) {
+		return;
+	}
+
+	string taskTitle = parsedTask["title"].asString();
+	bool task_completed = parsedTask["completed"].asBool();
+
+	if (task_alias == parsedTask["alias"].asString()) {
+		return;
+	}
+
+	if (workGroupIt.is_deleted()) {
+		cout << "\t\tTask: " << parsedTask["alias"].asString() << " deleted\n";
+		return;
+	}
+
+	cout << "\t\tTask: " << taskTitle;
+	if (task_completed) cout << "(completed)";
+	cout << "\n";
+}
+
+template <typename AliasList, typename TaskList> void ToDoCheckList::ProcessTasks(AliasList &tasks, TaskList wgList)
+{
+	for (int j=0; j<tasks.size(); j++) {
+		std::string task_alias = tasks[j].asString();
+		for (auto wg: wgList) {
+			processWorkgroup(wg, task_alias);
+		}
+	}
+}
+
 void ToDoCheckList::DoShowTaskList(rpc::Response &response)
 {
 	// full output
@@ -63,61 +101,27 @@ void ToDoCheckList::DoShowTaskList(rpc::Response &response)
 	int size = workGroupsListResponse.workgroup_info_list_size();
 	int i, j, k;
 
-	for (i=0; i<size; i++) {
-		if (workGroupsListResponse.workgroup_info_list(i).workgroup_type()==1002) {
-			string workgroup_name = workGroupsListResponse.workgroup_info_list(i).workgroup_name();
-			bool workgroup_deleted = workGroupsListResponse.workgroup_info_list(i).is_deleted();
+	for (auto wg: workGroupsListResponse.workgroup_info_list()) {
+
+		if (wg.workgroup_type()==1002) {
+			string workgroup_name = wg.workgroup_name();
+			bool workgroup_deleted = wg.is_deleted();
 
 			Json::Value parsedTaskList;
 			Json::Reader readerTaskList;
 
-			bool parsingSuccessful =
-				readerTaskList.parse(workGroupsListResponse.workgroup_info_list(i).workgroup_metadata(),
-						     parsedTaskList);
-
-			if (parsingSuccessful) {
-				string tasklistTtitle = parsedTaskList["title"].asString();
-
-				if (!workgroup_deleted)
-					cout << "Tasklist: " << tasklistTtitle << "\n";
-
-				Json::Value tasks = parsedTaskList["tasks"];
-				for (j=0; j<tasks.size(); j++) {
-					Json::Value task_alias = tasks[j];
-
-					for (k=0; k<size; k++) {
-						if (workGroupsListResponse.workgroup_info_list(k).workgroup_type()==1001) {
-							bool task_deleted = workGroupsListResponse.workgroup_info_list(k).is_deleted();
-
-							Json::Value parsedTask;
-							Json::Reader reader;
-
-							bool parsingSuccessful =
-								reader.parse(workGroupsListResponse.workgroup_info_list(
-										     k).workgroup_metadata(),
-									     parsedTask);
-
-							if (parsingSuccessful) {
-
-								if (parsedTask["alias"].asString() == task_alias.asString()) {
-									string taskTitle = parsedTask["title"].asString();
-									bool task_completed = parsedTask["completed"].asBool();
-
-
-									if (!task_deleted) {
-										cout << "\t\tTask: " << taskTitle;
-										if (task_completed)
-											cout << "(completed)";
-										cout << "\n";
-									}
-								}
-							}
-							else
-								cout << "\t\tTask: " << task_alias.asString() << "\n";
-						}
-					}
-				}
+			if (!readerTaskList.parse(wg.workgroup_metadata(), parsedTaskList)) {
+				continue;
 			}
+
+			if (workgroup_deleted) {
+				continue;
+			}
+
+			string tasklistTtitle = parsedTaskList["title"].asString();
+			cout << "Tasklist: " << tasklistTtitle << "\n";
+
+			ProcessTasks(parsedTaskList["tasks"], workGroupsListResponse.workgroup_info_list());
 		}
 	}
 }

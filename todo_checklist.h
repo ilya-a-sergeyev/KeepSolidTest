@@ -25,6 +25,7 @@ protected:
 	ToDoTransport *todotransp;
 	std::string session_id;
 	void DoShowTaskList(rpc::Response &response);
+	template <typename AliasList, typename TaskList> void ProcessTasks(AliasList &tasks, TaskList wgList);
 public:
 	ToDoCheckList();
 	~ToDoCheckList();
